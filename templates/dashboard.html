@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | InterviewIQ{% endblock %}
+
+{% block content %}
+<div style="max-width: 1100px; margin: 0 auto;">
+
+  <!-- Header & Welcome -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1>Candidate Dashboard</h1>
+      <p style="margin-bottom: 0;">
+        {% if user.is_authenticated %}
+          Welcome back, <strong>{{ user.username }}</strong>. Track your placement preparation progress.
+        {% else %}
+          Candidate Preparation Session. Track your placement mock interviews.
+        {% endif %}
+      </p>
+    </div>
+    <div>
+      <a href="{% url 'interview_setup' %}" class="btn btn-primary" style="font-size: 1rem; padding: 0.75rem 1.5rem;">
+        + Start New Interview
+      </a>
+    </div>
+  </div>
+
+  <!-- Performance Statistics Grid -->
+  <div class="grid grid-3" style="margin-bottom: 2rem;">
+    <!-- Stat 1: Completed Sessions -->
+    <div class="stat-box">
+      <div class="stat-label">Completed Interviews</div>
+      <div class="stat-value">{{ completed_count }}</div>
+      <div class="stat-meta">
+        {% if completed_count == 0 %}
+          No finished sessions yet
+        {% else %}
+          Scored placement simulations
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Stat 2: Average Score -->
+    <div class="stat-box">
+      <div class="stat-label">Average Score</div>
+      <div class="stat-value">
+        {% if avg_score is not None %}
+          {{ avg_score }}<span style="font-size: 1rem; color: var(--text-dim);"> / 100</span>
+        {% else %}
+          <span style="font-size: 1.4rem; color: var(--text-dim);">N/A</span>
+        {% endif %}
+      </div>
+      <div class="stat-meta">
+        {% if avg_score is not None %}
+          Strictly computed from answered questions
+        {% else %}
+          Complete a session to compute average
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Stat 3: Skill Improvement Delta -->
+    <div class="stat-box">
+      <div class="stat-label">Score Trajectory</div>
+      <div class="stat-value">
+        {% if improvement_delta is not None %}
+          {% if improvement_delta >= 0 %}
+            <span style="color: var(--success);">+{{ improvement_delta }}%</span>
+          {% else %}
+            <span style="color: var(--danger);">{{ improvement_delta }}%</span>
+          {% endif %}
+        {% else %}
+          <span style="font-size: 1.25rem; color: var(--text-dim);">Need ≥ 2 sessions</span>
+        {% endif %}
+      </div>
+      <div class="stat-meta">
+        {% if improvement_delta is not None %}
+          Difference between last two mock sessions
+        {% else %}
+          Requires 2 scored interviews for trend
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommended Practice Areas (Derived from actual results) -->
+  {% if recommended_areas %}
+    <div class="card" style="border-left: 4px solid var(--accent-primary); margin-bottom: 2rem;">
+      <h3 class="card-title" style="color: #c7d2fe;">Targeted Practice Recommendations</h3>
+      <p style="font-size: 0.875rem; margin-bottom: 0.75rem;">
+        Based on knowledge gaps identified during your past mock interviews, focus your revision on these concepts:
+      </p>
+      <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+        {% for area in recommended_areas %}
+          <span class="concept-tag" style="background: rgba(99, 102, 241, 0.15); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3);">
+            {{ area }}
+          </span>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Recent Interview Sessions -->
+  <div class="card">
+    <div class="card-title">
+      <span>Recent Interview Sessions</span>
+      {% if has_history %}
+        <a href="{% url 'history' %}" style="font-size: 0.85rem; font-weight: 500;">View Full History →</a>
+      {% endif %}
+    </div>
+
+    {% if recent_sessions %}
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Title / Domain</th>
+              <th>Type</th>
+              <th>Difficulty</th>
+              <th>Status</th>
+              <th>Score</th>
+              <th>Date</th>
+              <th style="text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in recent_sessions %}
+              <tr>
+                <td>
+                  <strong>{{ s.title }}</strong><br>
+                  <span style="font-size: 0.8rem; color: var(--text-dim);">{{ s.technical_domain }}</span>
+                </td>
+                <td><span class="badge badge-default">{{ s.interview_type }}</span></td>
+                <td><span class="badge badge-info">{{ s.difficulty }}</span></td>
+                <td>
+                  {% if s.state == 'COMPLETED' %}
+                    <span class="badge badge-success">Completed</span>
+                  {% elif s.state == 'CANCELLED' %}
+                    <span class="badge badge-default">Cancelled</span>
+                  {% else %}
+                    <span class="badge badge-warning">In Progress</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if s.overall_score is not None %}
+                    <strong>{{ s.overall_score }}</strong> / 100
+                  {% else %}
+                    <span style="color: var(--text-dim);">-</span>
+                  {% endif %}
+                </td>
+                <td style="font-size: 0.85rem; color: var(--text-muted);">
+                  {{ s.created_at|date:"M d, Y" }}
+                </td>
+                <td style="text-align: right;">
+                  {% if s.state == 'COMPLETED' %}
+                    <a href="{% url 'interview_report' s.id %}" class="btn btn-secondary btn-sm">Report</a>
+                  {% elif s.state == 'CANCELLED' %}
+                    <span style="font-size: 0.8rem; color: var(--text-dim);">Ended</span>
+                  {% else %}
+                    <a href="{% url 'interview_room' s.id %}" class="btn btn-primary btn-sm">Resume</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <!-- Empty State for New Candidates -->
+      <div class="empty-state">
+        <div class="empty-icon">🎯</div>
+        <h3>No interviews completed yet</h3>
+        <p style="max-width: 450px; margin: 0 auto 1.5rem auto;">
+          Configure your target tech domain, choose a difficulty level, and take your first placement interview simulation today.
+        </p>
+        <a href="{% url 'interview_setup' %}" class="btn btn-primary">
+          Start Your First Mock Interview
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}System & Interview Settings | InterviewIQ{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+
+  <div style="margin-bottom: 2rem;">
+    <h1>Settings & Diagnostics</h1>
+    <p>System configuration, AI engine settings, and browser multimedia diagnostics.</p>
+  </div>
+
+  <!-- AI Provider Diagnostic Card -->
+  <div class="card">
+    <h3 class="card-title">
+      <span>AI Engine Configuration</span>
+      <span class="badge {{ ai_status.badge_class }}">{{ ai_status.status_label }}</span>
+    </h3>
+
+    <p style="font-size: 0.9rem;">
+      InterviewIQ supports modular AI backends configured via environment variables.
+    </p>
+
+    <div style="background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1rem; font-family: var(--font-mono); font-size: 0.85rem;">
+      <div>AI_PROVIDER = <strong>{{ ai_status.provider_name }}</strong></div>
+      <div>ACTIVE_MODEL = <strong>{{ ai_status.model_name }}</strong></div>
+      <div>IS_REAL_LLM = <strong>{{ ai_status.is_real_ai }}</strong></div>
+    </div>
+
+    {% if not ai_status.is_real_ai %}
+      <div class="alert alert-warning" style="margin-bottom: 1rem;">
+        <div>
+          <strong>Currently running in Demo Mode:</strong><br>
+          Evaluations are deterministic and computed locally without calling paid external APIs. To activate real generative AI evaluations, configure your API keys in <code>.env</code>.
+        </div>
+      </div>
+
+      <div style="font-size: 0.85rem; color: var(--text-muted);">
+        <strong>How to configure Real AI Mode:</strong>
+        <ol style="padding-left: 1.25rem; margin-top: 0.5rem; line-height: 1.7;">
+          <li>Open the <code>.env</code> file in the project root directory.</li>
+          <li>Set <code>AI_PROVIDER=openai</code> (or <code>gemini</code>).</li>
+          <li>Provide your valid API key in <code>AI_API_KEY=your_key_here</code>.</li>
+          <li>Optionally customize <code>AI_MODEL=gpt-4o-mini</code> or <code>gemini-1.5-flash</code>.</li>
+          <li>Restart the local Django development server.</li>
+        </ol>
+      </div>
+    {% else %}
+      <div class="alert alert-success">
+        <div>
+          <strong>Real AI Provider Connected:</strong><br>
+          Evaluations and dynamic multi-turn follow-up questions are currently powered by {{ ai_status.model_name }}.
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Browser Media Diagnostics -->
+  <div class="card">
+    <h3 class="card-title">Browser Device Diagnostics</h3>
+    <p style="font-size: 0.9rem;">Check your browser's capability for voice recording and camera presence monitoring.</p>
+
+    <div class="grid grid-2" style="margin-top: 1rem;">
+      <div style="background: var(--bg-input); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+        <h4 style="font-size: 0.95rem; margin-bottom: 0.35rem;">🎙️ Web Speech API (STT / TTS)</h4>
+        <div id="diag-speech" style="font-size: 0.825rem; color: var(--text-muted);">Testing capability...</div>
+      </div>
+
+      <div style="background: var(--bg-input); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+        <h4 style="font-size: 0.95rem; margin-bottom: 0.35rem;">📷 MediaDevices (Camera Feed)</h4>
+        <div id="diag-camera" style="font-size: 0.825rem; color: var(--text-muted);">Testing capability...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Privacy Policy Commitment -->
+  <div class="card" style="border-left: 4px solid var(--accent-secondary);">
+    <h3 style="color: var(--accent-secondary); margin-bottom: 0.5rem;">🔒 Candidate Privacy Commitment</h3>
+    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.7;">
+      • Audio signals from your microphone are transcribed in-memory in your web browser.<br>
+      • Webcam video frames are never recorded, compressed, or streamed to any database or third-party server.<br>
+      • You have full ownership of your interview history and can delete all session records at any time from the History page.
+    </p>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Check Speech Recognition
+    const diagSpeech = document.getElementById('diag-speech');
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+      diagSpeech.innerHTML = '<span style="color:var(--success);">✅ Supported in this browser (Chrome / Edge / Safari).</span>';
+    } else {
+      diagSpeech.innerHTML = '<span style="color:var(--warning);">⚠️ Not natively supported in this browser. Text fallback mode available.</span>';
+    }
+
+    // Check MediaDevices
+    const diagCam = document.getElementById('diag-camera');
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      diagCam.innerHTML = '<span style="color:var(--success);">✅ MediaDevices API available.</span>';
+    } else {
+      diagCam.innerHTML = '<span style="color:var(--danger);">❌ MediaDevices not detected (HTTPS or localhost required).</span>';
+    }
+  });
+</script>
+{% endblock %}

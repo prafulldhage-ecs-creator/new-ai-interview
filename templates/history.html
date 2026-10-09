@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Interview History | InterviewIQ{% endblock %}
+
+{% block content %}
+<div style="max-width: 1050px; margin: 0 auto;">
+
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1>Interview History</h1>
+      <p>Review past placement mock sessions, track your historical scores, and manage past session records.</p>
+    </div>
+    <div>
+      <a href="{% url 'interview_setup' %}" class="btn btn-primary">+ New Mock Interview</a>
+    </div>
+  </div>
+
+  {% if sessions %}
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <div class="table-wrapper" style="border: none;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Title / Domain</th>
+              <th>Type</th>
+              <th>Difficulty</th>
+              <th>Status</th>
+              <th>Score</th>
+              <th>Date</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in sessions %}
+              <tr>
+                <td>
+                  <strong>{{ s.title }}</strong><br>
+                  <span style="font-size: 0.8rem; color: var(--text-dim);">{{ s.technical_domain }} • {{ s.experience_level }}</span>
+                </td>
+                <td><span class="badge badge-default">{{ s.interview_type }}</span></td>
+                <td><span class="badge badge-info">{{ s.difficulty }}</span></td>
+                <td>
+                  {% if s.state == 'COMPLETED' %}
+                    <span class="badge badge-success">Completed</span>
+                  {% elif s.state == 'CANCELLED' %}
+                    <span class="badge badge-default">Cancelled</span>
+                  {% else %}
+                    <span class="badge badge-warning">In Progress</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if s.overall_score is not None %}
+                    <strong style="font-size: 1.05rem;">{{ s.overall_score }}</strong> / 100
+                  {% else %}
+                    <span style="color: var(--text-dim);">-</span>
+                  {% endif %}
+                </td>
+                <td style="font-size: 0.85rem; color: var(--text-muted);">
+                  {{ s.created_at|date:"M d, Y" }}
+                </td>
+                <td style="text-align: right;">
+                  <div style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    {% if s.state == 'COMPLETED' %}
+                      <a href="{% url 'interview_report' s.id %}" class="btn btn-secondary btn-sm">Report</a>
+                    {% else %}
+                      <a href="{% url 'interview_room' s.id %}" class="btn btn-primary btn-sm">Resume</a>
+                    {% endif %}
+
+                    <!-- Delete Session Form -->
+                    <form method="post" action="{% url 'interview_delete' s.id %}" onsubmit="return confirm('Permanently delete this interview session? This action cannot be undone.');" style="display:inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);" title="Delete Session">
+                        🗑️
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📁</div>
+      <h3>No interview records found</h3>
+      <p style="max-width: 450px; margin: 0 auto 1.5rem auto;">
+        Your completed and saved placement interviews will appear here. Start your first session to build your interview track record.
+      </p>
+      <a href="{% url 'interview_setup' %}" class="btn btn-primary">Start New Interview</a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

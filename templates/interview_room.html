@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Interview Room | {{ session.title }} | InterviewIQ{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/interview.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Pre-Call Lobby Joining Modal -->
+<div class="precall-overlay" id="precall-overlay">
+  <div class="precall-box">
+    <div class="precall-icon">🎥</div>
+    <h2>Ready to Enter the Interview?</h2>
+    <p style="margin-bottom: 1.5rem; font-size: 0.95rem; color: var(--text-muted); line-height: 1.6;">
+      This is a realistic <strong>Audio-to-Audio Video Interview</strong> simulating an actual campus placement call.<br>
+      • Your camera and microphone will be activated.<br>
+      • The interviewer will <strong>first ask for your introduction</strong>.<br>
+      • Speak your answer aloud — no keyboard typing required!
+    </p>
+
+    <div style="background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1.5rem; text-align: left; font-size: 0.85rem;">
+      <div><strong>Domain:</strong> {{ session.technical_domain }}</div>
+      <div><strong>Target Role:</strong> {{ session.target_role|default:"Software Engineer" }}</div>
+      <div><strong>Format:</strong> Voice Dialogue • Live Video • Hands-Free Auto Mode</div>
+    </div>
+
+    <button type="button" class="btn btn-primary" id="btn-join-call" style="width: 100%; padding: 0.85rem; font-size: 1.05rem;">
+      🟢 Join Video Interview Call
+    </button>
+  </div>
+</div>
+
+<div class="meeting-wrapper">
+
+  <!-- Meeting Top Bar -->
+  <div class="meeting-top-bar">
+    <div class="meeting-title-group">
+      <h2><span>📹</span> {{ session.title }}</h2>
+      <div class="meeting-meta-pills">
+        <span class="badge badge-info">{{ session.technical_domain }}</span>
+        <span class="badge badge-default">{{ session.interview_type }}</span>
+        <span class="badge badge-primary">Difficulty: {{ session.difficulty }}</span>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <!-- Call Timer -->
+      <div class="meeting-timer-box">
+        <span>⏱️</span>
+        <span id="call-timer">00:00</span>
+      </div>
+
+      <!-- Quick End Call Form -->
+      <form method="post" action="{% url 'interview_end' session.id %}" onsubmit="return confirm('Conclude your placement interview? A full evaluation report will be generated for your responses.');" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-sm" style="padding: 0.4rem 0.85rem;">
+          End Call
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Video Call Stage (2 Main Tiles) -->
+  <div class="video-grid">
+    
+    <!-- Left Tile: AI Interviewer -->
+    <div class="video-tile ai-tile">
+      <!-- AI Status Pill -->
+      <div class="tile-status-tag" id="ai-status-pill">
+        <span class="status-dot" style="background: #38bdf8;"></span>
+        <span>AI Ready</span>
+      </div>
+
+      <!-- Question Tracker Pill -->
+      <div class="tile-question-tag" id="ai-question-tag">
+        {% if current_question.category == 'Candidate Introduction' %}
+          Candidate Introduction
+        {% else %}
+          Question {{ current_index }} of {{ session.total_questions_target }}
+        {% endif %}
+      </div>
+
+      <!-- Centered Avatar & Speaking Waveform -->
+      <div class="ai-avatar-wrapper">
+        <div class="ai-avatar-circle" id="ai-avatar">
+          🤖
+        </div>
+
+        <!-- Animated Waveform Equalizer -->
+        <div class="ai-waveform" id="ai-waveform">
+          <div class="wave-bar ai-wave-bar"></div>
+          <div class="wave-bar ai-wave-bar"></div>
+          <div class="wave-bar ai-wave-bar"></div>
+          <div class="wave-bar ai-wave-bar"></div>
+          <div class="wave-bar ai-wave-bar"></div>
+          <div class="wave-bar ai-wave-bar"></div>
+          <div class="wave-bar ai-wave-bar"></div>
+        </div>
+      </div>
+
+      <!-- Live Closed Captions for Interviewer -->
+      <div class="tile-captions-overlay" id="ai-captions-overlay" style="display: none;">
+        {{ current_question.text }}
+      </div>
+
+      <!-- Interviewer Nameplate -->
+      <div class="tile-nameplate">
+        <span>🤖</span>
+        <span>AI Placement Interviewer</span>
+      </div>
+    </div>
+
+    <!-- Right Tile: Candidate Webcam Feed -->
+    <div class="video-tile candidate-tile">
+      <!-- Live Video Feed -->
+      <video id="candidate-video" class="candidate-webcam-feed" playsinline muted autoplay style="display: none;"></video>
+      <canvas id="candidate-canvas" style="display: none;"></canvas>
+
+      <!-- Camera Off Placeholder -->
+      <div class="camera-placeholder-overlay" id="candidate-cam-placeholder">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📷</div>
+        <p style="font-size: 0.9rem;">
+          Camera initializing...<br>
+          <span class="text-dim">Click "Join Video Interview Call" above to begin.</span>
+        </p>
+      </div>
+
+      <!-- Candidate Presence Status -->
+      <div class="tile-status-tag" id="presence-status">
+        Camera Ready
+      </div>
+
+      <!-- Auto Silence Countdown Pill -->
+      <div class="silence-pill" id="silence-countdown-pill">
+        Auto-submitting in 3s...
+      </div>
+
+      <!-- Live Spoken Captions for Candidate -->
+      <div class="tile-captions-overlay candidate-caption" id="candidate-captions" style="display: none;">
+        Listening... Speak your answer into the microphone.
+      </div>
+
+      <!-- Candidate Nameplate with Live Mic Meter -->
+      <div class="tile-nameplate">
+        <span>👤</span>
+        <span>Candidate (You)</span>
+        
+        <!-- Live Microphone Volume Meter Bars -->
+        <div class="mic-level-meter" style="margin-left: 0.5rem;" title="Microphone Level">
+          <div class="meter-bar candidate-meter-bar"></div>
+          <div class="meter-bar candidate-meter-bar"></div>
+          <div class="meter-bar candidate-meter-bar"></div>
+          <div class="meter-bar candidate-meter-bar"></div>
+          <div class="meter-bar candidate-meter-bar"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Meeting Control Dock -->
+  <div class="meeting-control-bar">
+    <!-- Mic Toggle -->
+    <button type="button" class="btn-meeting" id="btn-mic-toggle" title="Toggle Microphone">
+      <span>🎙️</span>
+      <span>Mic Active</span>
+    </button>
+
+    <!-- Camera Toggle -->
+    <button type="button" class="btn-meeting" id="btn-cam-toggle" title="Toggle Camera">
+      <span>📹</span>
+      <span>Cam Active</span>
+    </button>
+
+    <!-- Done Speaking Button (Voice Answer Submit) -->
+    <button type="button" class="btn-meeting btn-done-speaking" id="btn-done-speaking" title="Submit your spoken answer immediately (or press Space)">
+      <span>🗣️</span>
+      <span>Done Speaking</span>
+    </button>
+
+    <!-- Subtitles Toggle -->
+    <button type="button" class="btn-meeting" id="btn-subtitles-toggle" title="Toggle Subtitles">
+      <span>💬</span>
+      <span>Captions</span>
+    </button>
+
+    <!-- Text Drawer Toggle (Emergency Fallback) -->
+    <button type="button" class="btn-meeting" id="btn-toggle-text-drawer" title="Emergency text fallback">
+      <span>⌨️</span>
+      <span>Type Note</span>
+    </button>
+
+    <!-- End Call -->
+    <form method="post" action="{% url 'interview_end' session.id %}" onsubmit="return confirm('Conclude interview session now?');" style="display:inline;">
+      {% csrf_token %}
+      <button type="submit" class="btn-meeting btn-end-call" title="Leave Interview Call">
+        <span>🔴</span>
+        <span>Leave Call</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Collapsible Text Fallback Drawer (Hidden by Default) -->
+  <div class="text-fallback-drawer" id="text-fallback-drawer" style="display: none;">
+    <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem; color: #a5b4fc;">
+      ⌨️ Text Fallback Drawer (For noisy rooms or microphone failure)
+    </div>
+    <textarea
+      id="manual-answer-text"
+      class="form-textarea"
+      rows="3"
+      placeholder="Live speech transcript automatically synchronizes here. You can also manually type text if needed..."
+    ></textarea>
+    <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+      <button type="button" class="btn btn-secondary btn-sm" id="btn-manual-submit">
+        Submit Written Answer
+      </button>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  window.INTERVIEW_CONFIG = {
+    sessionId: "{{ session.id }}",
+    questionId: {{ current_question.id }},
+    questionIndex: {{ current_index }},
+    totalQuestions: {{ session.total_questions_target }},
+    initialQuestionText: "{{ current_question.text|escapejs }}"
+  };
+</script>
+<script src="{% static 'js/voice.js' %}"></script>
+<script src="{% static 'js/webcam.js' %}"></script>
+<script src="{% static 'js/interview.js' %}"></script>
+{% endblock %}

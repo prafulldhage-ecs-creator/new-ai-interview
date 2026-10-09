@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account | InterviewIQ{% endblock %}
+
+{% block content %}
+<div style="max-width: 480px; margin: 2.5rem auto;">
+  <div class="card" style="padding: 2.25rem;">
+    <h2 style="text-align: center; margin-bottom: 0.5rem;">Create Candidate Account</h2>
+    <p style="text-align: center; font-size: 0.875rem; margin-bottom: 1.5rem;">
+      Save and track your engineering placement interviews.
+    </p>
+
+    <form method="post">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger" style="font-size: 0.85rem;">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      {% for field in form %}
+        <div class="form-group">
+          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div class="form-text" style="color: var(--danger);">{{ field.errors.0 }}</div>
+          {% endif %}
+          {% if field.help_text %}
+            <div class="form-text" style="font-size: 0.75rem;">{{ field.help_text|safe }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.75rem;">
+        Complete Registration →
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-dim);">
+      Already have an account? <a href="{% url 'login' %}">Sign in here</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate Login | InterviewIQ{% endblock %}
+
+{% block content %}
+<div style="max-width: 440px; margin: 3rem auto;">
+  <div class="card" style="padding: 2.25rem;">
+    <h2 style="text-align: center; margin-bottom: 0.5rem;">Sign In</h2>
+    <p style="text-align: center; font-size: 0.875rem; margin-bottom: 1.5rem;">
+      Log in to track all your placement mock interviews across devices.
+    </p>
+
+    <form method="post">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger" style="font-size: 0.85rem;">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <div class="form-group">
+        <label class="form-label" for="id_username">Username</label>
+        <input type="text" name="username" id="id_username" class="form-input" required autofocus>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="id_password">Password</label>
+        <input type="password" name="password" id="id_password" class="form-input" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.75rem;">
+        Sign In →
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-dim);">
+      Don't have an account? <a href="{% url 'register' %}">Sign up for free</a><br>
+      <span style="font-size: 0.8rem; margin-top: 0.5rem; display: inline-block;">Or practice as a guest anytime from the <a href="{% url 'dashboard' %}">Dashboard</a>.</span>
+    </div>
+  </div>
+</div>
+{% endblock %}

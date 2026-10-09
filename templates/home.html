@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}InterviewIQ | AI Placement Interview Simulator for Campus Placements{% endblock %}
+
+{% block content %}
+<div style="max-width: 980px; margin: 0 auto;">
+
+  <!-- Hero Section -->
+  <section style="text-align: center; padding: 3rem 1rem 4rem 1rem;">
+    <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 9999px; padding: 0.35rem 1rem; margin-bottom: 1.5rem; font-size: 0.85rem; font-weight: 600; color: #a5b4fc;">
+      <span>🚀 Engineered for B.Tech, M.Tech, MCA & Engineering Graduates</span>
+    </div>
+
+    <h1 style="font-size: 3rem; font-weight: 800; line-height: 1.15; margin-bottom: 1.25rem;">
+      Simulate Real Technical & HR Interviews.<br>
+      <span style="background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Ace Campus Placements.</span>
+    </h1>
+
+    <p style="font-size: 1.15rem; color: var(--text-muted); max-width: 720px; margin: 0 auto 2rem auto;">
+      Experience realistic, multi-turn technical interviews with context-aware AI interviewers.
+      Speak your answers, defend your code decisions, handle follow-ups, and receive transparent evaluation metrics.
+    </p>
+
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+      <a href="{% url 'interview_setup' %}" class="btn btn-primary" style="font-size: 1.05rem; padding: 0.85rem 2rem;">
+        Start Mock Interview →
+      </a>
+      <a href="{% url 'dashboard' %}" class="btn btn-secondary" style="font-size: 1.05rem; padding: 0.85rem 1.75rem;">
+        View Dashboard
+      </a>
+    </div>
+
+    <!-- Quick Mode Disclosure Banner -->
+    <div style="margin-top: 2rem; display: inline-flex; align-items: center; gap: 0.75rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.5rem 1rem; font-size: 0.825rem; color: var(--text-muted);">
+      <span class="status-dot" style="background: {% if ai_status.is_real_ai %}var(--success){% else %}var(--warning){% endif %};"></span>
+      <span>Current Mode: <strong>{{ ai_status.status_label }}</strong></span>
+      <a href="{% url 'settings' %}" style="color: var(--accent-primary); text-decoration: underline; margin-left: 0.25rem;">Configure Provider</a>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section style="margin-bottom: 4rem;">
+    <h2 style="text-align: center; margin-bottom: 2rem;">How InterviewIQ Works</h2>
+    <div class="grid grid-3">
+      <div class="card" style="margin-bottom: 0;">
+        <div style="font-size: 1.5rem; font-weight: 800; color: var(--accent-primary); margin-bottom: 0.5rem;">01</div>
+        <h3 class="card-title">Configure Your Target</h3>
+        <p style="font-size: 0.9rem;">Select your domain (DSA, DBMS, OS, React, Python), experience level (Intern / Fresher), difficulty, and target job description.</p>
+      </div>
+
+      <div class="card" style="margin-bottom: 0;">
+        <div style="font-size: 1.5rem; font-weight: 800; color: var(--accent-primary); margin-bottom: 0.5rem;">02</div>
+        <h3 class="card-title">Engage in Realistic Dialogue</h3>
+        <p style="font-size: 0.9rem;">The AI interviewer asks questions, listens to your voice or text response, challenges weak assumptions, and asks intelligent follow-up questions.</p>
+      </div>
+
+      <div class="card" style="margin-bottom: 0;">
+        <div style="font-size: 1.5rem; font-weight: 800; color: var(--accent-primary); margin-bottom: 0.5rem;">03</div>
+        <h3 class="card-title">Detailed Performance Report</h3>
+        <p style="font-size: 0.9rem;">Review scoring breakdowns (Correctness, Depth, Completeness, Reasoning), filler word analytics, identified concept gaps, and revision roadmaps.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Key Features Section -->
+  <section style="margin-bottom: 4rem;">
+    <h2 style="text-align: center; margin-bottom: 2rem;">Built for Engineering Hiring Realities</h2>
+    <div class="grid grid-2">
+      <div class="card" style="margin-bottom: 0;">
+        <h3 style="color: #93c5fd; margin-bottom: 0.4rem;">🎙️ Voice & Spoken Speech</h3>
+        <p style="font-size: 0.9rem;">Practice vocalizing your technical reasoning with browser-based speech recognition and Text-to-Speech audio playback for interviewer questions.</p>
+      </div>
+
+      <div class="card" style="margin-bottom: 0;">
+        <h3 style="color: #93c5fd; margin-bottom: 0.4rem;">🎯 Adaptive Difficulty</h3>
+        <p style="font-size: 0.9rem;">Questions dynamically adjust based on your performance. Demonstrate strong fundamentals and the engine steps up to system trade-offs and edge cases.</p>
+      </div>
+
+      <div class="card" style="margin-bottom: 0;">
+        <h3 style="color: #93c5fd; margin-bottom: 0.4rem;">👁️ Privacy-Respecting Presence</h3>
+        <p style="font-size: 0.9rem;">Optional client-side webcam feedback helps maintain camera eye contact and good framing without recording or sending any video to external servers.</p>
+      </div>
+
+      <div class="card" style="margin-bottom: 0;">
+        <h3 style="color: #93c5fd; margin-bottom: 0.4rem;">📊 Objective Rubric Scoring</h3>
+        <p style="font-size: 0.9rem;">Never guess what went wrong. Every answer is evaluated on technical correctness, conceptual depth, and practical reasoning with clear exemplar answers.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Supported Domains Grid -->
+  <section style="margin-bottom: 4rem;">
+    <h2 style="text-align: center; margin-bottom: 0.5rem;">Available Interview Domains</h2>
+    <p style="text-align: center; margin-bottom: 2rem;">Tailored for core IT campus drives and tier-1 product engineering rounds.</p>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center;">
+      <span class="badge badge-info" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">Data Structures & Algorithms</span>
+      <span class="badge badge-info" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">DBMS & SQL</span>
+      <span class="badge badge-info" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">Operating Systems</span>
+      <span class="badge badge-info" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">Computer Networks</span>
+      <span class="badge badge-info" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">Object-Oriented Programming</span>
+      <span class="badge badge-info" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">Python</span>
+      <span class="badge badge-info" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">JavaScript</span>
+      <span class="badge badge-info" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">React</span>
+      <span class="badge badge-info" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">Java</span>
+      <span class="badge badge-info" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">C and C++</span>
+      <span class="badge badge-info" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">AI and Machine Learning</span>
+      <span class="badge badge-info" style="font-size: 0.85rem; padding: 0.5rem 0.9rem;">HR & Behavioral (STAR Method)</span>
+    </div>
+  </section>
+
+  <!-- Privacy & Permissions Explainer -->
+  <section class="card" style="border-left: 4px solid var(--accent-secondary); margin-bottom: 3rem;">
+    <h3 style="color: var(--accent-secondary); margin-bottom: 0.5rem;">🔒 Privacy & Device Access Commitments</h3>
+    <p style="font-size: 0.875rem; margin-bottom: 0.5rem;">
+      We believe in complete transparency for engineering candidates:
+    </p>
+    <ul style="font-size: 0.85rem; color: var(--text-muted); padding-left: 1.25rem; line-height: 1.8;">
+      <li><strong>Microphone:</strong> Speech recognition runs natively in your browser using the HTML5 Web Speech API. Audio is never stored on our database.</li>
+      <li><strong>Camera:</strong> Optional client-side computer-vision feedback runs on your local browser canvas. No frames, snapshots, or webcam streams are ever uploaded or saved.</li>
+      <li><strong>AI Evaluation:</strong> When in Demo Mode, evaluations use deterministic local algorithms. When connected to a real provider, prompts contain only the question and candidate transcript text.</li>
+    </ul>
+  </section>
+
+</div>
+{% endblock %}

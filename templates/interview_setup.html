@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Configure Mock Interview | InterviewIQ{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+
+  <div style="margin-bottom: 2rem;">
+    <h1>Configure Mock Interview</h1>
+    <p>Customize the interview session to match your upcoming campus placement drive or company technical round.</p>
+  </div>
+
+  <form method="post" class="card" style="padding: 2rem;">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <div class="grid grid-2">
+      <!-- Title -->
+      <div class="form-group" style="grid-column: span 2;">
+        <label class="form-label" for="{{ form.title.id_for_label }}">Interview Session Title</label>
+        {{ form.title }}
+        {% if form.title.errors %}<div class="form-text" style="color:var(--danger)">{{ form.title.errors.0 }}</div>{% endif %}
+      </div>
+
+      <!-- Interview Type -->
+      <div class="form-group">
+        <label class="form-label" for="{{ form.interview_type.id_for_label }}">Interview Type</label>
+        {{ form.interview_type }}
+        {% if form.interview_type.errors %}<div class="form-text" style="color:var(--danger)">{{ form.interview_type.errors.0 }}</div>{% endif %}
+      </div>
+
+      <!-- Technical Domain -->
+      <div class="form-group">
+        <label class="form-label" for="{{ form.technical_domain.id_for_label }}">Core Technical Domain</label>
+        {{ form.technical_domain }}
+        {% if form.technical_domain.errors %}<div class="form-text" style="color:var(--danger)">{{ form.technical_domain.errors.0 }}</div>{% endif %}
+      </div>
+
+      <!-- Difficulty -->
+      <div class="form-group">
+        <label class="form-label" for="{{ form.difficulty.id_for_label }}">Difficulty</label>
+        {{ form.difficulty }}
+        <div class="form-text">Choose 'Adaptive' to have question difficulty dynamically tune to your responses.</div>
+      </div>
+
+      <!-- Experience Level -->
+      <div class="form-group">
+        <label class="form-label" for="{{ form.experience_level.id_for_label }}">Experience Level</label>
+        {{ form.experience_level }}
+      </div>
+
+      <!-- Total Questions Target -->
+      <div class="form-group">
+        <label class="form-label" for="{{ form.total_questions_target.id_for_label }}">Interview Length</label>
+        {{ form.total_questions_target }}
+      </div>
+
+      <!-- Communication Mode -->
+      <div class="form-group">
+        <label class="form-label" for="{{ form.communication_mode.id_for_label }}">Preferred Communication Mode</label>
+        {{ form.communication_mode }}
+        <div class="form-text">Voice mode utilizes the browser Web Speech API.</div>
+      </div>
+
+      <!-- Interview Language -->
+      <div class="form-group">
+        <label class="form-label" for="{{ form.interview_language.id_for_label }}">Interview Language</label>
+        {{ form.interview_language }}
+        <div class="form-text">Hindi & Marathi supported when connected to compatible AI provider.</div>
+      </div>
+
+      <!-- Target Company / Role -->
+      <div class="form-group">
+        <label class="form-label" for="{{ form.target_role.id_for_label }}">Target Company or Role (Optional)</label>
+        {{ form.target_role }}
+      </div>
+
+      <!-- Candidate Skills -->
+      <div class="form-group" style="grid-column: span 2;">
+        <label class="form-label" for="{{ form.skills.id_for_label }}">Your Skills (Optional)</label>
+        {{ form.skills }}
+      </div>
+
+      <!-- Project Description -->
+      <div class="form-group" style="grid-column: span 2;">
+        <label class="form-label" for="{{ form.project_description.id_for_label }}">Your Academic / Personal Projects (Optional)</label>
+        {{ form.project_description }}
+        <div class="form-text">Mention tech stack, challenges faced, or key accomplishments for project-based questions.</div>
+      </div>
+
+      <!-- Job Description -->
+      <div class="form-group" style="grid-column: span 2;">
+        <label class="form-label" for="{{ form.job_description.id_for_label }}">Target Job Description / Key Criteria (Optional)</label>
+        {{ form.job_description }}
+        <div class="form-text">Paste specific job requirements or campus placement syllabus topics.</div>
+      </div>
+    </div>
+
+    <!-- Submit CTA -->
+    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; border-top: 1px solid var(--border-subtle); padding-top: 1.5rem;">
+      <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1rem;">
+        Enter Interview Room →
+      </button>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

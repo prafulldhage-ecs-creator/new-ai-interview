@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ app_name }} | {{ app_tagline }}{% endblock %}</title>
+  
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="{% url 'home' %}" class="brand">
+        <span style="font-weight: 900; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">InterviewIQ</span>
+        <span class="brand-badge">Placement Pro</span>
+      </a>
+
+      <!-- AI Provider Status Pill -->
+      <div class="ai-status-pill {{ ai_status.badge_class }}" title="AI Provider: {{ ai_status.model_name }}">
+        <span class="status-dot"></span>
+        <span>{{ ai_status.status_label }}</span>
+      </div>
+
+      <nav class="nav-links">
+        <a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a>
+        <a href="{% url 'interview_setup' %}" class="nav-link">New Interview</a>
+        <a href="{% url 'history' %}" class="nav-link">History</a>
+        <a href="{% url 'settings' %}" class="nav-link">Settings</a>
+        
+        {% if user.is_authenticated %}
+          <span style="color: var(--text-dim); font-size: 0.85rem;">|</span>
+          <span style="font-size: 0.85rem; color: #a5b4fc; font-weight: 600;">{{ user.username }}</span>
+          <form method="post" action="{% url 'logout' %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Logout</button>
+          </form>
+        {% else %}
+          <a href="{% url 'login' %}" class="nav-link">Login</a>
+          <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Sign Up</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <!-- Messages / Notifications -->
+  <main class="main-content">
+    {% if messages %}
+      <div style="margin-bottom: 1.5rem;">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div>
+        <strong>InterviewIQ</strong> — AI Placement Interview Simulator for Engineering Students.
+      </div>
+      <div>
+        Privacy First: Audio & Camera processing occurs entirely in your browser. No biometric images are stored on our servers.
+      </div>
+    </div>
+  </footer>
+
+  <script src="{% static 'js/app.js' %}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

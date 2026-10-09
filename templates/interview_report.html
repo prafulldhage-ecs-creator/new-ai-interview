@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Interview Report | {{ session.title }} | InterviewIQ{% endblock %}
+
+{% block content %}
+<div style="max-width: 950px; margin: 0 auto;">
+
+  <!-- Report Hero Header -->
+  <div class="report-hero">
+    <div>
+      <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-secondary); font-weight: 800; margin-bottom: 0.25rem;">
+        Placement Assessment Report
+      </div>
+      <h2>{{ session.title }}</h2>
+      <p style="margin-bottom: 0.5rem; color: var(--text-muted);">
+        {{ session.technical_domain }} • {{ session.experience_level }} • Completed on {{ session.completed_at|date:"M d, Y, h:i A" }}
+      </p>
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <span class="badge badge-info">{{ session.interview_type }}</span>
+        <span class="badge badge-primary">Difficulty: {{ session.difficulty }}</span>
+        <span class="badge badge-default">Answered: {{ total_answered }} of {{ total_asked }}</span>
+      </div>
+    </div>
+
+    <!-- Overall Score Circle -->
+    <div style="text-align: center;">
+      <div class="score-circle">
+        {% if session.overall_score is not None %}
+          <div class="score-number">{{ session.overall_score }}</div>
+          <div class="score-max">OUT OF 100</div>
+        {% else %}
+          <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-dim);">N/A</div>
+          <div class="score-max">UNSCORED</div>
+        {% endif %}
+      </div>
+      <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.4rem;">
+        Weighted Evaluation
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance Summary & Rubric Explanation -->
+  <div class="card" style="border-left: 4px solid var(--accent-primary);">
+    <h3 style="color: #c7d2fe; margin-bottom: 0.5rem;">Executive Performance Summary</h3>
+    <p style="font-size: 0.95rem; color: var(--text-main); margin-bottom: 1rem;">
+      {{ report.performance_summary|default:"The candidate completed the placement interview. Review question feedback below for individual insights." }}
+    </p>
+
+    <div style="background: var(--bg-input); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.825rem; color: var(--text-muted);">
+      <strong>📐 Scoring Methodology:</strong> {{ rubric_explanation }}
+      {% if report.disclaimer %}
+        <div style="margin-top: 0.4rem; color: #fbbf24; font-weight: 500;">{{ report.disclaimer }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Strengths & Knowledge Gaps -->
+  <div class="grid grid-2" style="margin-bottom: 2rem;">
+    <!-- Strengths -->
+    <div class="card" style="margin-bottom: 0;">
+      <h3 style="color: var(--success); margin-bottom: 0.75rem;">✅ Demonstrated Strengths</h3>
+      {% if report.strengths %}
+        <ul style="padding-left: 1.25rem; font-size: 0.9rem; line-height: 1.7; color: var(--text-main);">
+          {% for s in report.strengths %}
+            <li>{{ s }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p style="font-size: 0.85rem; color: var(--text-dim);">No specific high-scoring strengths recorded in this session.</p>
+      {% endif %}
+    </div>
+
+    <!-- Knowledge Gaps -->
+    <div class="card" style="margin-bottom: 0;">
+      <h3 style="color: var(--warning); margin-bottom: 0.75rem;">⚠️ Key Areas to Reinforce</h3>
+      {% if report.knowledge_gaps %}
+        <ul style="padding-left: 1.25rem; font-size: 0.9rem; line-height: 1.7; color: var(--text-main);">
+          {% for g in report.knowledge_gaps %}
+            <li>{{ g }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p style="font-size: 0.85rem; color: var(--text-dim);">No major conceptual knowledge gaps detected.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Detailed Question-by-Question Breakdown -->
+  <div class="report-section">
+    <h2 style="margin-bottom: 1rem;">Detailed Question Evaluation</h2>
+
+    {% for item in questions_data %}
+      <div class="report-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-secondary);">
+              {% if item.question.is_follow_up %}FOLLOW-UP QUESTION{% else %}QUESTION {{ item.question.question_index }}{% endif %}
+            </span>
+            <h3 style="margin-top: 0.2rem; font-size: 1.1rem;">{{ item.question.text }}</h3>
+          </div>
+
+          <div>
+            {% if item.evaluation %}
+              <span class="badge {% if item.evaluation.score >= 80 %}badge-success{% elif item.evaluation.score >= 60 %}badge-info{% elif item.evaluation.score >= 40 %}badge-warning{% else %}badge-danger{% endif %}" style="font-size: 0.85rem; padding: 0.35rem 0.75rem;">
+                {{ item.evaluation.classification }} • {{ item.evaluation.score }}/100
+              </span>
+            {% else %}
+              <span class="badge badge-default">Unanswered</span>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if item.answer %}
+          <div style="background: var(--bg-input); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-bottom: 1rem;">
+            <div style="font-size: 0.785rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">
+              Candidate's Transcribed Response (via {{ item.answer.input_method }}):
+            </div>
+            <div style="font-size: 0.925rem; color: #f8fafc; line-height: 1.5;">
+              "{{ item.answer.text }}"
+            </div>
+          </div>
+        {% endif %}
+
+        {% if item.evaluation %}
+          <!-- Concepts Breakdown -->
+          <div style="margin-bottom: 0.75rem;">
+            {% if item.evaluation.correct_concepts %}
+              <div style="margin-bottom: 0.4rem;">
+                <span style="font-size: 0.8rem; color: var(--text-dim); font-weight: 600;">Correct Concepts: </span>
+                {% for c in item.evaluation.correct_concepts %}
+                  <span class="concept-tag">{{ c }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            {% if item.evaluation.missing_concepts %}
+              <div>
+                <span style="font-size: 0.8rem; color: var(--text-dim); font-weight: 600;">Missing Concepts: </span>
+                {% for m in item.evaluation.missing_concepts %}
+                  <span class="missing-tag">{{ m }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Evaluation Explanation & Improvement -->
+          <div style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 0.75rem;">
+            <strong>Analysis:</strong> {{ item.evaluation.explanation }}
+          </div>
+
+          {% if item.evaluation.suggestions %}
+            <div style="font-size: 0.875rem; color: #93c5fd; margin-bottom: 0.75rem;">
+              <strong>Actionable Suggestion:</strong> {{ item.evaluation.suggestions }}
+            </div>
+          {% endif %}
+
+          {% if item.evaluation.better_answer_example %}
+            <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.85rem; color: #d1fae5;">
+              <strong>Exemplary Response Outline:</strong> {{ item.evaluation.better_answer_example }}
+            </div>
+          {% endif %}
+
+          <!-- Communication Transcript Metrics -->
+          {% if item.evaluation.communication_feedback %}
+            <div style="margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.785rem; color: var(--text-dim); display: flex; gap: 1rem; flex-wrap: wrap;">
+              <span>Words: <strong>{{ item.evaluation.communication_feedback.word_count }}</strong></span>
+              <span>Filler Words: <strong>{{ item.evaluation.communication_feedback.filler_count }}</strong> ({{ item.evaluation.communication_feedback.filler_ratio_pct }}%)</span>
+              <span>Clarity: <strong>{{ item.evaluation.communication_feedback.clarity_level }}</strong></span>
+            </div>
+          {% endif %}
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Recommended Next Steps & Roadmap -->
+  <div class="card" style="border-left: 4px solid var(--accent-secondary);">
+    <h3 style="color: var(--accent-secondary); margin-bottom: 0.5rem;">Recommended Preparation Plan</h3>
+    <p style="font-size: 0.95rem; margin-bottom: 1rem;">
+      {{ report.suggested_next_practice|default:"Continue practicing mock interviews across related technical domains to build confidence and structured vocal communication." }}
+    </p>
+
+    {% if report.recommended_topics %}
+      <div style="margin-bottom: 1rem;">
+        <strong style="font-size: 0.85rem;">Focus Topics for Next Session:</strong>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem;">
+          {% for topic in report.recommended_topics %}
+            <span class="badge badge-info">{{ topic }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+      <a href="{% url 'interview_setup' %}" class="btn btn-primary">Start Another Mock Interview →</a>
+      <a href="{% url 'dashboard' %}" class="btn btn-secondary">Return to Dashboard</a>
+      <button type="button" class="btn btn-outline" onclick="window.print();">🖨️ Print / Save PDF</button>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
